@@ -1,0 +1,87 @@
+import java.util.*;
+
+public class Solution {
+    static class Edge {
+        int to, weight;
+        Edge(int to, int weight) {
+            this.to = to;
+            this.weight = weight;
+        }
+    }
+
+    static class Node {
+        int id, dist;
+        Node(int id, int dist) {
+            this.id = id;
+            this.dist = dist;
+        }
+    }
+
+    static int[] dijkstra(int n, List<List<Edge>> graph, int start) {
+        int[] dist = new int[n + 1];
+        Arrays.fill(dist, Integer.MAX_VALUE);
+        dist[start] = 0;
+
+        boolean[] visited = new boolean[n + 1];
+
+        PriorityQueue<Node> pq = new PriorityQueue<Node>(n, new Comparator<Node>() {
+            public int compare(Node a, Node b) {
+                return a.dist - b.dist;
+            }
+        });
+        pq.add(new Node(start, 0));
+
+        while (!pq.isEmpty()) {
+            Node cur = pq.poll();
+            int node = cur.id;
+            if (visited[node]) continue;
+            visited[node] = true;
+
+            for (Edge e : graph.get(node)) {
+                if (dist[node] + e.weight < dist[e.to]) {
+                    dist[e.to] = dist[node] + e.weight;
+                    pq.add(new Node(e.to, dist[e.to]));
+                }
+            }
+        }
+        return dist;
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int T = sc.nextInt();
+        while (T-- > 0) {
+            int n = sc.nextInt(), m = sc.nextInt();
+            List<Map<Integer,Integer>> adjMap = new ArrayList<Map<Integer,Integer>>();
+            for (int i = 0; i <= n; i++) adjMap.add(new HashMap<Integer,Integer>());
+
+            // keep only smallest edge between two nodes
+            for (int i = 0; i < m; i++) {
+                int u = sc.nextInt(), v = sc.nextInt(), w = sc.nextInt();
+                if (!adjMap.get(u).containsKey(v) || adjMap.get(u).get(v) > w) {
+                    adjMap.get(u).put(v, w);
+                    adjMap.get(v).put(u, w);
+                }
+            }
+
+            List<List<Edge>> graph = new ArrayList<List<Edge>>();
+            for (int i = 0; i <= n; i++) graph.add(new ArrayList<Edge>());
+            for (int u = 1; u <= n; u++) {
+                for (Map.Entry<Integer,Integer> entry : adjMap.get(u).entrySet()) {
+                    graph.get(u).add(new Edge(entry.getKey(), entry.getValue()));
+                }
+            }
+
+            int start = sc.nextInt();
+            int[] dist = dijkstra(n, graph, start);
+
+            StringBuilder sb = new StringBuilder();
+            for (int i = 1; i <= n; i++) {
+                if (i == start) continue;
+                sb.append(dist[i] == Integer.MAX_VALUE ? -1 : dist[i]).append(" ");
+            }
+            System.out.println(sb.toString().trim());
+        }
+        sc.close();
+    }
+}
